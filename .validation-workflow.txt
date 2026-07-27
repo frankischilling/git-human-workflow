@@ -1,2 +1,3 @@
 Temporary full workflow validation artifact.
 This file exists only on the validation branch.
+Merge validation completed on a temporary branch.
