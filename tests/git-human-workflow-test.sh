@@ -122,6 +122,21 @@ test_hooks_block_bad_plain_commit_messages() {
   )
 }
 
+test_hooks_preserve_existing_pre_commit_hook() {
+  local repo marker hook
+  repo=$(new_repo)
+  marker="$repo/previous-hook-ran"
+  hook="$repo/.git/hooks/pre-commit"
+  printf '#!/usr/bin/env bash\nprintf chained > %q\n' "$marker" >"$hook"
+  chmod +x "$hook"
+  (
+    cd "$repo"
+    "$SCRIPT" install-repo-hooks >/dev/null
+    git commit --allow-empty -m 'Preserve prior hook behavior' >/dev/null
+  )
+  [[ $(<"$marker") == chained ]]
+}
+
 test_gh_forwards_checked_issue_and_pr() {
   local temporary repo log
   temporary=$(mktemp -d)
@@ -176,6 +191,7 @@ run_case 'git creates checked branch' test_git_creates_checked_branch
 run_case 'git rejects marker in message file' test_git_rejects_marker_in_message_file
 run_case 'sanitize text removes marker lines' test_sanitize_text_removes_marker_lines
 run_case 'hooks block bad plain commit messages' test_hooks_block_bad_plain_commit_messages
+run_case 'hooks preserve existing pre-commit hook' test_hooks_preserve_existing_pre_commit_hook
 run_case 'gh forwards checked issue and pull request' test_gh_forwards_checked_issue_and_pr
 run_case 'gh rejects marker in API input' test_gh_rejects_marker_in_api_input
 run_case 'gh checks stdin payload and blocks web flow' test_gh_checks_stdin_payload_and_blocks_web_flow

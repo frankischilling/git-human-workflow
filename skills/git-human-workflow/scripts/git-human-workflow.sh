@@ -246,7 +246,10 @@ run_git() {
 
 TEMP_INPUT=''
 cleanup_temp_input() {
-  [[ -n $TEMP_INPUT ]] && rm -f -- "$TEMP_INPUT"
+  if [[ -n $TEMP_INPUT ]]; then
+    rm -f -- "$TEMP_INPUT"
+  fi
+  return 0
 }
 
 prepare_gh_arguments() {
