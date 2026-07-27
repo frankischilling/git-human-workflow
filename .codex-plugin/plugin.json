@@ -1,0 +1,28 @@
+{
+  "name": "git-human-workflow",
+  "version": "0.1.0",
+  "description": "Terminal-first Git and GitHub workflows with human identity and public-text guards.",
+  "author": {
+    "name": "Frank",
+    "email": "101807917+frankischilling@users.noreply.github.com",
+    "url": "https://github.com/frankischilling"
+  },
+  "homepage": "https://github.com/frankischilling/git-human-workflow",
+  "repository": "https://github.com/frankischilling/git-human-workflow",
+  "license": "MIT",
+  "keywords": ["git", "github", "gh", "branches", "issues", "pull-requests"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Git Human Workflow",
+    "shortDescription": "Terminal-first Git and GitHub workflows",
+    "longDescription": "Run checked Git and GitHub CLI workflows with human identity and public-text guards.",
+    "developerName": "Frank",
+    "category": "Developer Tools",
+    "capabilities": ["Interactive", "Write"],
+    "defaultPrompt": [
+      "Use $git-human-workflow to create a safe feature branch.",
+      "Use $git-human-workflow to open and close a GitHub issue.",
+      "Use $git-human-workflow to commit this change with my Git identity."
+    ]
+  }
+}

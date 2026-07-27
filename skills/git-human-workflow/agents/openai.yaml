@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Human Workflow"
+  short_description: "Terminal-first Git and GitHub workflows"
+  default_prompt: "Use $git-human-workflow to safely manage this repository."
