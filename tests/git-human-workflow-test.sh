@@ -84,6 +84,16 @@ test_git_rejects_prohibited_branch() {
   )
 }
 
+test_git_creates_checked_branch() {
+  local repo
+  repo=$(new_repo)
+  (
+    cd "$repo"
+    "$SCRIPT" git switch -c validation/branch-workflow >/dev/null
+    [[ $(git branch --show-current) == validation/branch-workflow ]]
+  )
+}
+
 test_git_rejects_marker_in_message_file() {
   local repo message
   repo=$(new_repo)
@@ -162,6 +172,7 @@ test_gh_checks_stdin_payload_and_blocks_web_flow() {
 
 run_case 'git commit uses configured identity' test_git_commit_uses_configured_identity
 run_case 'git rejects prohibited branch' test_git_rejects_prohibited_branch
+run_case 'git creates checked branch' test_git_creates_checked_branch
 run_case 'git rejects marker in message file' test_git_rejects_marker_in_message_file
 run_case 'sanitize text removes marker lines' test_sanitize_text_removes_marker_lines
 run_case 'hooks block bad plain commit messages' test_hooks_block_bad_plain_commit_messages

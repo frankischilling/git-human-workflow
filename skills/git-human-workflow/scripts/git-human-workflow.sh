@@ -184,10 +184,13 @@ reject_author_argument() {
 }
 
 reject_uninspectable_git_flags() {
+  local subcommand=$1
+  shift
+  [[ $subcommand == commit ]] || return 0
   local arg
   for arg in "$@"; do
     case "$arg" in
-      --edit|-e|--reuse-message=*|--reedit-message=*|--fixup=*|--squash=*|-C|-c)
+      --edit|--no-edit|-e|--reuse-message=*|--reedit-message=*|--fixup=*|--squash=*|-C|-c)
         die "cannot inspect public text supplied by $arg; pass explicit checked text instead"
         ;;
     esac
@@ -224,9 +227,9 @@ run_git() {
     require_clean_text "$arg" 'Git argument'
   done
   scan_git_file_arguments "$@"
-  reject_uninspectable_git_flags "$@"
 
   local subcommand=$1
+  reject_uninspectable_git_flags "$subcommand" "$@"
   if [[ $subcommand == commit ]]; then
     reject_author_argument "$@"
     resolve_identity
