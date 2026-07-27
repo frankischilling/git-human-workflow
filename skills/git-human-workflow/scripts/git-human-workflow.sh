@@ -328,7 +328,7 @@ require_noninteractive_content() {
 run_gh() {
   shift
   [[ $# -gt 0 ]] || die 'gh requires a GitHub CLI command'
-  check_gh_account
+  check_gh_account >/dev/null
   trap cleanup_temp_input RETURN
   prepare_gh_arguments "$@"
   require_noninteractive_content "${GH_ARGS[0]:-}" "${GH_ARGS[1]:-}"
