@@ -167,8 +167,13 @@ check_git_identity() {
 
 check_gh_account() {
   command_exists gh || die 'GitHub CLI is required for hosted operations'
-  gh auth status --active --hostname github.com >/dev/null 2>&1 || die 'no active GitHub CLI account for github.com'
-  local login
+  local auth_help login
+  auth_help=$(gh auth status --help 2>&1 || true)
+  if [[ $auth_help == *--active* ]]; then
+    gh auth status --active --hostname github.com >/dev/null 2>&1 || die 'no active GitHub CLI account for github.com'
+  else
+    gh auth status --hostname github.com >/dev/null 2>&1 || die 'no active GitHub CLI account for github.com'
+  fi
   login=$(gh_user_field '.login // empty' || true)
   valid_identity_value "$login" || die 'active GitHub CLI account is missing or contains a prohibited marker'
   printf 'GitHub account: %s\n' "$login"
