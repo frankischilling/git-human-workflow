@@ -41,12 +41,23 @@ make_fake_gh() {
 set -euo pipefail
 
 if [[ ${1:-} == auth && ${2:-} == status ]]; then
-  exit 0
+  if [[ ${3:-} == --help ]]; then
+    printf 'usage: gh auth status [flags]\n'
+    if [[ ${FAKE_GH_SUPPORTS_ACTIVE:-0} == 1 ]]; then
+      printf '  --active  display the active account only\n'
+    fi
+    exit 0
+  fi
+  if [[ -n ${FAKE_GH_AUTH_LOG:-} ]]; then
+    printf '%s\n' "$*" >>"$FAKE_GH_AUTH_LOG"
+  fi
+  [[ ${FAKE_GH_AUTH_FAIL:-0} != 1 ]]
+  exit
 fi
 
 if [[ ${1:-} == api && ${2:-} == user ]]; then
   case " ${*:3} " in
-    *' .login // empty '*) printf 'frankhub\n' ;;
+    *' .login // empty '*) printf '%s\n' "${FAKE_GH_LOGIN-frankhub}" ;;
     *' .name // .login // empty '*) printf 'Frank Hub\n' ;;
     *' .email // empty '*) printf 'frankhub@example.test\n' ;;
     *) printf 'frankhub\n' ;;
@@ -185,6 +196,58 @@ test_gh_checks_stdin_payload_and_blocks_web_flow() {
   grep -q '^api repos/example/issues --method POST --input ' "$log"
 }
 
+test_gh_auth_status_omits_unsupported_active_flag() {
+  local temporary repo log
+  temporary=$(mktemp -d)
+  repo=$(new_repo)
+  log="$temporary/auth.log"
+  make_fake_gh "$temporary"
+  (
+    cd "$repo"
+    PATH="$temporary/bin:$PATH" FAKE_GH_AUTH_LOG="$log" \
+      "$SCRIPT" check >/dev/null
+  )
+  grep -qx 'auth status --hostname github.com' "$log"
+}
+
+test_gh_auth_status_uses_supported_active_flag() {
+  local temporary repo log
+  temporary=$(mktemp -d)
+  repo=$(new_repo)
+  log="$temporary/auth.log"
+  make_fake_gh "$temporary"
+  (
+    cd "$repo"
+    PATH="$temporary/bin:$PATH" FAKE_GH_AUTH_LOG="$log" FAKE_GH_SUPPORTS_ACTIVE=1 \
+      "$SCRIPT" check >/dev/null
+  )
+  grep -qx 'auth status --active --hostname github.com' "$log"
+}
+
+test_gh_auth_status_failure_is_rejected() {
+  local temporary repo
+  temporary=$(mktemp -d)
+  repo=$(new_repo)
+  make_fake_gh "$temporary"
+  (
+    cd "$repo"
+    ! PATH="$temporary/bin:$PATH" FAKE_GH_AUTH_FAIL=1 \
+      "$SCRIPT" check >/dev/null 2>&1
+  )
+}
+
+test_gh_missing_active_login_is_rejected() {
+  local temporary repo
+  temporary=$(mktemp -d)
+  repo=$(new_repo)
+  make_fake_gh "$temporary"
+  (
+    cd "$repo"
+    ! PATH="$temporary/bin:$PATH" FAKE_GH_LOGIN='' \
+      "$SCRIPT" check >/dev/null 2>&1
+  )
+}
+
 run_case 'git commit uses configured identity' test_git_commit_uses_configured_identity
 run_case 'git rejects prohibited branch' test_git_rejects_prohibited_branch
 run_case 'git creates checked branch' test_git_creates_checked_branch
@@ -195,5 +258,9 @@ run_case 'hooks preserve existing pre-commit hook' test_hooks_preserve_existing_
 run_case 'gh forwards checked issue and pull request' test_gh_forwards_checked_issue_and_pr
 run_case 'gh rejects marker in API input' test_gh_rejects_marker_in_api_input
 run_case 'gh checks stdin payload and blocks web flow' test_gh_checks_stdin_payload_and_blocks_web_flow
+run_case 'gh auth status omits unsupported active flag' test_gh_auth_status_omits_unsupported_active_flag
+run_case 'gh auth status uses supported active flag' test_gh_auth_status_uses_supported_active_flag
+run_case 'gh auth status failure is rejected' test_gh_auth_status_failure_is_rejected
+run_case 'gh missing active login is rejected' test_gh_missing_active_login_is_rejected
 
 [[ $FAILED -eq 0 ]]
