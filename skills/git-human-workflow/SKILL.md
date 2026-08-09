@@ -9,7 +9,7 @@ description: Manage Git repositories and GitHub from the terminal while preservi
 
 Use the bundled helper for every mutating Git or GitHub operation. It invokes only the local `git` and authenticated `gh` command-line clients; do not use browser, connector, MCP, or forge-specific skill tooling.
 
-## Start Every Workflow
+## Start every workflow
 
 Run the preflight from the target repository:
 
@@ -23,7 +23,7 @@ Install repository hooks once when direct commits may also be made outside the h
 bash "<skill-path>/scripts/git-human-workflow.sh" install-repo-hooks
 ```
 
-## Run Git Operations
+## Run Git operations
 
 Prefix the complete direct Git command with `git`:
 
@@ -36,7 +36,7 @@ bash "<skill-path>/scripts/git-human-workflow.sh" git push -u origin feature/bet
 
 Use the helper for commits and amends even when hooks are installed. It resolves identity from repository config, global config, then the active GitHub CLI account, and it rejects conflicting author overrides.
 
-## Run GitHub Operations
+## Run GitHub operations
 
 Prefix the complete GitHub CLI command with `gh`:
 
@@ -53,7 +53,9 @@ bash "<skill-path>/scripts/git-human-workflow.sh" gh pr create \
 
 Use explicit, inspectable text flags or files. Do not use browser/editor flows, generated fill text, or uninspectable remote templates for public content. For `gh api`, send checked JSON through `--input`; the helper also checks stdin payloads and content files.
 
-## Public-Text Rule
+The helper uses the active `github.com` account by default. Set `GH_HOST` for another GitHub host. Authentication checks work with `gh` versions with and without `gh auth status --active`.
+
+## Public-text rule
 
 Before publishing text, run it through `sanitize-text` when it may contain boilerplate:
 

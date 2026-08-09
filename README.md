@@ -39,7 +39,7 @@ The helper rejects prohibited automation markers in public Git or GitHub text. I
 
 `sanitize-text` removes whole lines containing known boilerplate markers; review its output before publishing. Source files and the plugin documentation are intentionally outside this scan so the guard itself remains maintainable.
 
-The GitHub side requires a logged-in `gh` account. GitHub records that active account as the actor for hosted changes; Git branch references themselves have no author field.
+The GitHub side requires a logged-in `gh` account. It uses `github.com` unless `GH_HOST` names another host, and it supports CLI versions with and without `gh auth status --active`. GitHub records the active account as the actor for hosted changes; Git branch references themselves have no author field.
 
 ## Development
 

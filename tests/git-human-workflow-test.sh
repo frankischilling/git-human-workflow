@@ -4,6 +4,9 @@ set -euo pipefail
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 SCRIPT="$ROOT_DIR/skills/git-human-workflow/scripts/git-human-workflow.sh"
 FAILED=0
+TEST_GLOBAL_CONFIG=$(mktemp)
+trap 'rm -f "$TEST_GLOBAL_CONFIG"' EXIT
+export GIT_CONFIG_GLOBAL="$TEST_GLOBAL_CONFIG"
 
 pass() {
   printf 'ok - %s\n' "$1"
@@ -128,7 +131,9 @@ test_hooks_block_bad_plain_commit_messages() {
   (
     cd "$repo"
     "$SCRIPT" install-repo-hooks >/dev/null
-    ! git commit --allow-empty -m 'Prepared by OpenAI' >/dev/null 2>&1
+    if git commit --allow-empty -m 'Prepared by OpenAI' >/dev/null 2>&1; then
+      return 1
+    fi
     git commit --allow-empty -m 'Use checked command line workflow' >/dev/null
   )
 }
@@ -224,6 +229,20 @@ test_gh_auth_status_uses_supported_active_flag() {
   grep -qx 'auth status --active --hostname github.com' "$log"
 }
 
+test_gh_auth_status_uses_configured_host() {
+  local temporary repo log
+  temporary=$(mktemp -d)
+  repo=$(new_repo)
+  log="$temporary/auth.log"
+  make_fake_gh "$temporary"
+  (
+    cd "$repo"
+    PATH="$temporary/bin:$PATH" FAKE_GH_AUTH_LOG="$log" GH_HOST=git.example.test \
+      "$SCRIPT" check >/dev/null
+  )
+  grep -qx 'auth status --hostname git.example.test' "$log"
+}
+
 test_gh_auth_status_failure_is_rejected() {
   local temporary repo
   temporary=$(mktemp -d)
@@ -260,6 +279,7 @@ run_case 'gh rejects marker in API input' test_gh_rejects_marker_in_api_input
 run_case 'gh checks stdin payload and blocks web flow' test_gh_checks_stdin_payload_and_blocks_web_flow
 run_case 'gh auth status omits unsupported active flag' test_gh_auth_status_omits_unsupported_active_flag
 run_case 'gh auth status uses supported active flag' test_gh_auth_status_uses_supported_active_flag
+run_case 'gh auth status uses configured host' test_gh_auth_status_uses_configured_host
 run_case 'gh auth status failure is rejected' test_gh_auth_status_failure_is_rejected
 run_case 'gh missing active login is rejected' test_gh_missing_active_login_is_rejected
 
