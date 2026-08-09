@@ -167,12 +167,13 @@ check_git_identity() {
 
 check_gh_account() {
   command_exists gh || die 'GitHub CLI is required for hosted operations'
-  local auth_help login
+  local auth_help hostname login
+  hostname=${GH_HOST:-github.com}
   auth_help=$(gh auth status --help 2>&1 || true)
   if [[ $auth_help == *--active* ]]; then
-    gh auth status --active --hostname github.com >/dev/null 2>&1 || die 'no active GitHub CLI account for github.com'
+    gh auth status --active --hostname "$hostname" >/dev/null 2>&1 || die "no active GitHub CLI account for $hostname"
   else
-    gh auth status --hostname github.com >/dev/null 2>&1 || die 'no active GitHub CLI account for github.com'
+    gh auth status --hostname "$hostname" >/dev/null 2>&1 || die "no active GitHub CLI account for $hostname"
   fi
   login=$(gh_user_field '.login // empty' || true)
   valid_identity_value "$login" || die 'active GitHub CLI account is missing or contains a prohibited marker'
@@ -316,7 +317,7 @@ require_noninteractive_content() {
   local arg has_title=0 has_body=0
   for arg in "${GH_ARGS[@]}"; do
     case "$arg" in
-      --title|--title=*|-t|--title=*) has_title=1 ;;
+      --title|--title=*|-t) has_title=1 ;;
       --body|--body=*|--body-file|--body-file=*|--notes|--notes=*|--notes-file|--notes-file=*) has_body=1 ;;
     esac
   done
